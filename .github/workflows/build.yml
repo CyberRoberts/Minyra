@@ -1,0 +1,20 @@
+name: Build public Minyra source
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  intel-mac:
+    runs-on: macos-15-intel
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install icon generator
+        run: python3 -m pip install --quiet 'Pillow==11.3.0'
+      - name: Build app and run offline Agent verification
+        run: bash Scripts/build_public.sh

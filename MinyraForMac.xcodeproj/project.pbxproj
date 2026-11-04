@@ -1,0 +1,239 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+
+/* Begin PBXBuildFile section */
+		B10000000000000000000001 /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000001 /* API.swift */; };
+		B10000000000000000000002 /* APISettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* APISettingsView.swift */; };
+		B10000000000000000000003 /* AgentCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* AgentCore.swift */; };
+		B10000000000000000000004 /* AgentPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000004 /* AgentPolicies.swift */; };
+		B10000000000000000000005 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000005 /* App.swift */; };
+		B10000000000000000000006 /* Companion.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000006 /* Companion.swift */; };
+		B10000000000000000000007 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000007 /* ContentView.swift */; };
+		B10000000000000000000008 /* MiniAgentDeliveryE2E.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000008 /* MiniAgentDeliveryE2E.swift */; };
+		B10000000000000000000009 /* MiniCharacterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000009 /* MiniCharacterView.swift */; };
+		B1000000000000000000000A /* MiniChatSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000A /* MiniChatSettingsView.swift */; };
+		B1000000000000000000000B /* MiniCompanionOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000B /* MiniCompanionOverlay.swift */; };
+		B1000000000000000000000C /* ModelRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000C /* ModelRouter.swift */; };
+		B1000000000000000000000D /* ProjectExecutionSandbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000D /* ProjectExecutionSandbox.swift */; };
+		B1000000000000000000000E /* SettingsAndFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000E /* SettingsAndFiles.swift */; };
+		B1000000000000000000000F /* TaskSupervisor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000F /* TaskSupervisor.swift */; };
+		B20000000000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000002 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		F10000000000000000000001 /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "API.swift"; sourceTree = "<group>"; };
+		F10000000000000000000002 /* APISettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "APISettingsView.swift"; sourceTree = "<group>"; };
+		F10000000000000000000003 /* AgentCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AgentCore.swift"; sourceTree = "<group>"; };
+		F10000000000000000000004 /* AgentPolicies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AgentPolicies.swift"; sourceTree = "<group>"; };
+		F10000000000000000000005 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App.swift"; sourceTree = "<group>"; };
+		F10000000000000000000006 /* Companion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Companion.swift"; sourceTree = "<group>"; };
+		F10000000000000000000007 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView.swift"; sourceTree = "<group>"; };
+		F10000000000000000000008 /* MiniAgentDeliveryE2E.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MiniAgentDeliveryE2E.swift"; sourceTree = "<group>"; };
+		F10000000000000000000009 /* MiniCharacterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MiniCharacterView.swift"; sourceTree = "<group>"; };
+		F1000000000000000000000A /* MiniChatSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MiniChatSettingsView.swift"; sourceTree = "<group>"; };
+		F1000000000000000000000B /* MiniCompanionOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MiniCompanionOverlay.swift"; sourceTree = "<group>"; };
+		F1000000000000000000000C /* ModelRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ModelRouter.swift"; sourceTree = "<group>"; };
+		F1000000000000000000000D /* ProjectExecutionSandbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProjectExecutionSandbox.swift"; sourceTree = "<group>"; };
+		F1000000000000000000000E /* SettingsAndFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsAndFiles.swift"; sourceTree = "<group>"; };
+		F1000000000000000000000F /* TaskSupervisor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskSupervisor.swift"; sourceTree = "<group>"; };
+		F30000000000000000000002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F30000000000000000000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F30000000000000000000004 /* MiniAgent.iconset */ = {isa = PBXFileReference; lastKnownFileType = folder; path = MiniAgent.iconset; sourceTree = "<group>"; };
+		F30000000000000000000005 /* MiniAgentIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MiniAgentIcon.png; sourceTree = "<group>"; };
+		F30000000000000000000006 /* prepare_icons.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = prepare_icons.sh; sourceTree = "<group>"; };
+		F30000000000000000000007 /* package_resources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = package_resources.sh; sourceTree = "<group>"; };
+		F30000000000000000000001 /* Minyra for Mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Minyra for Mac.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E30000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D10000000000000000000001 = {isa = PBXGroup; children = (
+			D10000000000000000000002 /* Sources */,
+			F30000000000000000000002 /* Assets.xcassets */,
+			D10000000000000000000003 /* Original Mini-chan Icon */,
+			D10000000000000000000004 /* Scripts */,
+			F30000000000000000000003 /* Info.plist */,
+			D10000000000000000000005 /* Products */,
+		); sourceTree = "<group>"; };
+		D10000000000000000000002 /* Sources */ = {isa = PBXGroup; children = (
+			F10000000000000000000001 /* API.swift */,
+			F10000000000000000000002 /* APISettingsView.swift */,
+			F10000000000000000000003 /* AgentCore.swift */,
+			F10000000000000000000004 /* AgentPolicies.swift */,
+			F10000000000000000000005 /* App.swift */,
+			F10000000000000000000006 /* Companion.swift */,
+			F10000000000000000000007 /* ContentView.swift */,
+			F10000000000000000000008 /* MiniAgentDeliveryE2E.swift */,
+			F10000000000000000000009 /* MiniCharacterView.swift */,
+			F1000000000000000000000A /* MiniChatSettingsView.swift */,
+			F1000000000000000000000B /* MiniCompanionOverlay.swift */,
+			F1000000000000000000000C /* ModelRouter.swift */,
+			F1000000000000000000000D /* ProjectExecutionSandbox.swift */,
+			F1000000000000000000000E /* SettingsAndFiles.swift */,
+			F1000000000000000000000F /* TaskSupervisor.swift */,
+		); path = Sources; sourceTree = "<group>"; };
+		D10000000000000000000003 /* Original Mini-chan Icon */ = {isa = PBXGroup; children = (
+			F30000000000000000000004 /* MiniAgent.iconset */,
+			F30000000000000000000005 /* MiniAgentIcon.png */,
+		); name = "Original Mini-chan Icon"; path = Assets; sourceTree = "<group>"; };
+		D10000000000000000000004 /* Scripts */ = {isa = PBXGroup; children = (
+			F30000000000000000000006 /* prepare_icons.sh */,
+			F30000000000000000000007 /* package_resources.sh */,
+		); path = Scripts; sourceTree = "<group>"; };
+		D10000000000000000000005 /* Products */ = {isa = PBXGroup; children = (
+			F30000000000000000000001 /* Minyra for Mac.app */,
+		); name = Products; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A20000000000000000000001 /* MinyraForMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C20000000000000000000002 /* Build configuration list for PBXNativeTarget "MinyraForMac" */;
+			buildPhases = (
+				E40000000000000000000001 /* Prepare Official AppIcon */,
+				E10000000000000000000001 /* Sources */,
+				E30000000000000000000001 /* Frameworks */,
+				E20000000000000000000001 /* Resources */,
+				E50000000000000000000001 /* Bundle Mini-chan Assets */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = MinyraForMac;
+			productName = "Minyra for Mac";
+			productReference = F30000000000000000000001 /* Minyra for Mac.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A10000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = { A20000000000000000000001 = { CreatedOnToolsVersion = 16.0; LastSwiftMigration = 1600; }; };
+			};
+			buildConfigurationList = C20000000000000000000001 /* Build configuration list for PBXProject "MinyraForMac" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = D10000000000000000000001;
+			productRefGroup = D10000000000000000000005 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (A20000000000000000000001 /* MinyraForMac */,);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E20000000000000000000001 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (B20000000000000000000001 /* Assets.xcassets in Resources */,); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E40000000000000000000001 /* Prepare Official AppIcon */ = {isa = PBXShellScriptBuildPhase; alwaysOutOfDate = 1; buildActionMask = 2147483647; files = (); inputPaths = (); name = "Prepare Official AppIcon"; outputPaths = (); runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "bash \"$SRCROOT/Scripts/prepare_icons.sh\""; };
+		E50000000000000000000001 /* Bundle Mini-chan Assets */ = {isa = PBXShellScriptBuildPhase; alwaysOutOfDate = 1; buildActionMask = 2147483647; files = (); inputPaths = (); name = "Bundle Mini-chan Assets"; outputPaths = (); runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "bash \"$SRCROOT/Scripts/package_resources.sh\""; };
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E10000000000000000000001 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+			B10000000000000000000001 /* API.swift in Sources */,
+			B10000000000000000000002 /* APISettingsView.swift in Sources */,
+			B10000000000000000000003 /* AgentCore.swift in Sources */,
+			B10000000000000000000004 /* AgentPolicies.swift in Sources */,
+			B10000000000000000000005 /* App.swift in Sources */,
+			B10000000000000000000006 /* Companion.swift in Sources */,
+			B10000000000000000000007 /* ContentView.swift in Sources */,
+			B10000000000000000000008 /* MiniAgentDeliveryE2E.swift in Sources */,
+			B10000000000000000000009 /* MiniCharacterView.swift in Sources */,
+			B1000000000000000000000A /* MiniChatSettingsView.swift in Sources */,
+			B1000000000000000000000B /* MiniCompanionOverlay.swift in Sources */,
+			B1000000000000000000000C /* ModelRouter.swift in Sources */,
+			B1000000000000000000000D /* ProjectExecutionSandbox.swift in Sources */,
+			B1000000000000000000000E /* SettingsAndFiles.swift in Sources */,
+			B1000000000000000000000F /* TaskSupervisor.swift in Sources */,
+		); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		C10000000000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = { 
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+			}; name = Debug; };
+		C10000000000000000000002 /* Release */ = {isa = XCBuildConfiguration; buildSettings = { 
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+			}; name = Release; };
+		C10000000000000000000003 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+				ARCHS = x86_64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				EXECUTABLE_NAME = MiniCodingAgent;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/../Frameworks");
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.cyberroberts.minyra.opensource;
+				PRODUCT_NAME = "Minyra for Mac";
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				ENABLE_DEBUG_DYLIB = NO;
+				ENABLE_XOJIT_PREVIEWS = NO;
+			}; name = Debug; };
+		C10000000000000000000004 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+				ARCHS = x86_64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				EXECUTABLE_NAME = MiniCodingAgent;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/../Frameworks");
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.cyberroberts.minyra.opensource;
+				PRODUCT_NAME = "Minyra for Mac";
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				ENABLE_DEBUG_DYLIB = NO;
+				ENABLE_XOJIT_PREVIEWS = NO;
+			}; name = Release; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C20000000000000000000001 /* Build configuration list for PBXProject "MinyraForMac" */ = {isa = XCConfigurationList; buildConfigurations = (C10000000000000000000001 /* Debug */, C10000000000000000000002 /* Release */,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		C20000000000000000000002 /* Build configuration list for PBXNativeTarget "MinyraForMac" */ = {isa = XCConfigurationList; buildConfigurations = (C10000000000000000000003 /* Debug */, C10000000000000000000004 /* Release */,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+
+	};
+	rootObject = A10000000000000000000001 /* Project object */;
+}

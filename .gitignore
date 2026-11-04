@@ -1,0 +1,58 @@
+# macOS and Xcode
+.DS_Store
+.AppleDouble
+._*
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.ipa
+*.dmg
+*.app/
+*.xcarchive/
+*.dSYM/
+build/
+dist/
+tmp/
+
+# Editor and local dependencies
+.idea/
+.vscode/
+.swiftpm/
+.build/
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Local test/debug output
+*.log
+*.trace
+*.profraw
+*.profdata
+coverage/
+.pytest_cache/
+test-results/
+
+# Personal settings and credentials - never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.p8
+*.key
+*.mobileprovision
+*.provisionprofile
+*.keystore
+*.jks
+credentials.json
+secrets.json
+*service-account*.json
+*.apikey
+
+# Generated character/model assets and exports
+MiniChan_RigReady.psd
+Live2D/output/
+Live2D/player/
+Live2D/diagnostics/
