@@ -1144,7 +1144,7 @@ final class AgentCore: ObservableObject {
             return folder.appendingPathComponent(String(hash, radix: 16) + ".json")
         }
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? FileManager.default.homeDirectoryForCurrentUser
-        let folder = dir.appendingPathComponent("MinyraOpenSource/Sessions", isDirectory: true)
+        let folder = dir.appendingPathComponent("MiniCodingAgent/Sessions", isDirectory: true)
         var hash: UInt64 = 14695981039346656037
         for c in workspace.root.path.utf8 { hash = (hash ^ UInt64(c)) &* 1099511628211 }
         return folder.appendingPathComponent(String(hash, radix: 16) + ".json")
