@@ -33,6 +33,21 @@ enum AgentContextPolicy {
         return reduced
     }
 
+    // An in-flight multi-tool batch must stay intact until the final tool
+    // result arrives. Do not trim it midway through execution.
+    static func hasPendingToolCalls(_ history: [[String: Any]]) -> Bool {
+        var outstanding = Set<String>()
+        for item in history {
+            if let calls = item["tool_calls"] as? [[String: Any]] {
+                outstanding.formUnion(calls.compactMap { $0["id"] as? String })
+            }
+            if item["role"] as? String == "tool", let id = item["tool_call_id"] as? String {
+                outstanding.remove(id)
+            }
+        }
+        return !outstanding.isEmpty
+    }
+
     // Prune whole assistant tool-call / tool-result transactions. Truncating
     // at a raw message index creates orphan tool IDs and API HTTP 400s after
     // a long task or crash. The chat transcript and task memo are saved apart.
