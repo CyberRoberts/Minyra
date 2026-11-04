@@ -2,7 +2,7 @@ name: Build and verify public Minyra preview
 
 on:
   push:
-    branches: [main]
+    branches: [main, ci/private-core-compatibility-20261104]
   pull_request:
 
 permissions:
@@ -22,7 +22,7 @@ jobs:
       - name: Build and run offline agent verification
         run: bash Scripts/build_public.sh
       - name: Package unsigned Intel preview
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci/private-core-compatibility-20261104')
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -34,7 +34,7 @@ jobs:
           (cd dist && shasum -a 256 *.zip > SHA256SUMS.txt)
           test -s dist/SHA256SUMS.txt
       - name: Upload public preview package
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci/private-core-compatibility-20261104')
         uses: actions/upload-artifact@v4
         with:
           name: minyra-macOS-Intel-preview
