@@ -136,6 +136,11 @@ final class AgentCore: ObservableObject {
         guard CommandLine.arguments.contains("--agent-e2e-test") else { return }
         e2eKey = "offline-test-credential-never-sent"
     }
+    // Verifies the production disk-resume path without exposing it in the UI.
+    func reloadSessionForE2ETest() {
+        guard CommandLine.arguments.contains("--agent-e2e-test") else { return }
+        loadSession()
+    }
     private var currentJob: Task<Void, Never>?
     private var runningWhenSaved = false
     private var finishedDuringRun = false
