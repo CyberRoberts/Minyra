@@ -33,6 +33,47 @@ enum AgentContextPolicy {
         return reduced
     }
 
+    // Prune whole assistant tool-call / tool-result transactions. Truncating
+    // at a raw message index creates orphan tool IDs and API HTTP 400s after
+    // a long task or crash. The chat transcript and task memo are saved apart.
+    static func trimStoredHistory(_ history: [[String: Any]], maxMessages: Int = 42) -> [[String: Any]] {
+        guard let system = history.first else { return [] }
+        var groups: [[[String: Any]]] = []
+        var current: [[String: Any]] = []
+        var pending = Set<String>()
+        for message in history.dropFirst() {
+            let role = message["role"] as? String ?? ""
+            if role == "tool" {
+                guard let id = message["tool_call_id"] as? String, pending.contains(id) else { continue }
+                current.append(message)
+                pending.remove(id)
+                if pending.isEmpty {
+                    groups.append(current)
+                    current.removeAll()
+                }
+                continue
+            }
+            // Drop incomplete tool transactions instead of sending invalid history.
+            if !pending.isEmpty { current.removeAll(); pending.removeAll() }
+            if let calls = message["tool_calls"] as? [[String: Any]], !calls.isEmpty {
+                let ids = calls.compactMap { $0["id"] as? String }
+                guard !ids.isEmpty else { continue }
+                current = [message]
+                pending = Set(ids)
+            } else if role == "assistant" || role == "user" {
+                groups.append([message])
+            }
+        }
+        var retained: [[[String: Any]]] = []
+        var count = 1
+        for group in groups.reversed() {
+            if count + group.count > maxMessages { break }
+            retained.insert(group, at: 0)
+            count += group.count
+        }
+        return [system] + retained.flatMap { $0 }
+    }
+
     static func promptHistory(system: String, originalGoal: String, memo: [String], history: [[String: Any]]) -> [[String: Any]] {
         // Preserve complete tool-call groups; orphaned tool results cause a DeepSeek API 400 error.
         var groups: [[[String: Any]]] = []
