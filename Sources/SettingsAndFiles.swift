@@ -7,7 +7,7 @@ struct AppConfig {
     // In test mode a separate per-process preference domain is used.
     private static var configDefaults: UserDefaults {
         if CommandLine.arguments.contains("--agent-e2e-test"),
-           let isolated = UserDefaults(suiteName: "io.github.cyberroberts.minyra.opensource.e2e.\(ProcessInfo.processInfo.processIdentifier)") {
+           let isolated = UserDefaults(suiteName: "com.minicodingagent.native.e2e.\(ProcessInfo.processInfo.processIdentifier)") {
             return isolated
         }
         return .standard
@@ -43,7 +43,7 @@ struct AppConfig {
 }
 
 enum APIKeychain {
-    private static let service = "io.github.cyberroberts.minyra.opensource.api"
+    private static let service = "com.minicodingagent.native.api"
     private static let account = "user-supplied-key"
     static func load() -> String? {
         let q: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
