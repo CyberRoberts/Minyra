@@ -56,7 +56,7 @@ struct MiniChatConfig {
 }
 
 enum MiniChatKeychain {
-    private static let service = "io.github.cyberroberts.minyra.opensource.mini-chat"
+    private static let service = "com.minicodingagent.native.mini-chat"
     private static let account = "mini-standalone-deepseek-key"
     static func load() -> String? {
         let q: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
@@ -160,7 +160,7 @@ final class MiniCompanionAI: ObservableObject {
 
     private var conversationFile: URL {
         FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Application Support/MinyraOpenSource/Companion/companion-chat.json")
+            .appendingPathComponent("Library/Application Support/MiniCodingAgent/Companion/companion-chat.json")
     }
     init() {
         if let data = try? Data(contentsOf: conversationFile),
