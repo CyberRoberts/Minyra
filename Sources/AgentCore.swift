@@ -460,7 +460,7 @@ final class AgentCore: ObservableObject {
 
     private func saveShortHistory() {
         // The complete chat and task memo are saved separately; API history is a rolling cache.
-        if history.count > 42 {
+        if history.count > 42 && !AgentContextPolicy.hasPendingToolCalls(history) {
             history = AgentContextPolicy.trimStoredHistory(history, maxMessages: 42)
         }
     }
