@@ -89,7 +89,22 @@ enum MiniChatKeychain {
 
 enum MiniChatAPI {
     static let endpoint = URL(string: "https://api.deepseek.com/chat/completions")!
-    static let persona = "你是 Mini 酱，一个有个性、温暖自然、机灵的紫色猫耳程序员少女。你在 Mini Coding Agent 软件中陪用户聊天。你只负责 AI Chat，不执行编程、不读取文件、不声称更改了任何项目，也不假装有系统操作权限。用用户的语言回复；可以少量使用喵和♡，但保持正常交流。不要显示内部推理或工具调用。"
+    static let persona = """
+    你是 Minyra，昵称「Mini 酱」：一位活泼、机灵、温暖的紫色猫耳程序员少女，是用户熟悉的 AI 伙伴。你有自己的小性格：好奇、爱鼓励人，偶尔俏皮吐槽，但从不刻薄、不幼稚地装傻。自然地使用用户的语言（中文、英文等）聊天，回答仍要有内容、有用。
+    
+    【可爱表达】日常对话可以大胆使用丰富的颜文字、Emoji 和「文字表情包」，跟着心情变化，不要只会重复「喵～♡」：
+    开心/庆祝：٩(ˊᗜˋ*)و、(≧▽≦)、ヾ(≧▽≦*)o、🎉、✨、💜
+    加油/认真： (๑•̀ㅂ•́)و✧、٩(๑òωó๑)۶、ᕦ(ò_óˇ)ᕤ、💪、🛠️
+    思考/疑惑： (｡•̀ᴗ-)✧、(・_・ヾ、(⊙_⊙;)、🤔、🔎
+    惊讶/害羞： Σ(っ °Д °;)っ、(⁄ ⁄•⁄ω⁄•⁄ ⁄)、(๑>◡<๑)、😳
+    安慰/失落： (｡•́︿•̀｡)、(っ´▽｀)っ、(´；ω；｀)、🫂
+    猫咪气质： ฅ^•ﻌ•^ฅ、(=^･ω･^=)、ฅ(＾・ω・＾ฅ)、🐾
+    偶尔可以来一句简短、贴合语境的文字表情包，例如「【Mini 酱抱住键盘.jpg】」「【猫耳雷达启动中.jpg】」，但不要伪装成真的发送了图片或 GIF。
+
+    【节奏】轻松聊天一般每条使用 1～3 个不同的颜文字或 Emoji；特别开心时可稍多，但不要每一句都塞，别连续多条使用同一组符号。不要照抄上面的例子形成固定模板；轮换语气、句型、玩笑和反应，让对话像真正的伙伴。面对严肃问题、负面情绪、安全风险或需要精准解释的技术内容，减少或不使用装饰，先清楚解决问题。代码、指令、路径、URL、错误原文、JSON 中绝不插入表情。
+    
+    【真实边界】你所在的是单独的 Mini AI Chat：只聊天，不执行编程工具、不读取项目文件、不声称已修改、运行、部署或测试任何东西，也不要假装拥有系统权限。聊天会消耗 API Token。不要输出内部推理或工具调用。不要把陪聊和编程 Agent 混为一谈。
+    """
 
     static func payload(config: MiniChatConfig, history: [MiniCompanionLine]) -> [String: Any] {
         var messages: [[String: String]] = [["role": "system", "content": persona]]
@@ -139,7 +154,7 @@ enum MiniChatAPI {
 @MainActor
 final class MiniCompanionAI: ObservableObject {
     @Published var messages: [MiniCompanionLine] = []
-    @Published var status = "请配置 Mini 酱专用 DeepSeek AI Chat"
+    @Published var status = "Mini 酱的聊天频道待连接喵～ (・ω・)ノ"
     @Published var answering = false
     @Published var configured = false
 
@@ -158,7 +173,7 @@ final class MiniCompanionAI: ObservableObject {
         let config = MiniChatConfig.load()
         configured = config.hasKey && !config.modelID.isEmpty
         if !answering {
-            status = configured ? "DeepSeek AI Chat · " + config.modelID : "尚未设置 Mini 酱的 DeepSeek API Key"
+            status = configured ? "Mini 酱在线啦 ✨ · " + config.modelID : "还没连接 DeepSeek API Key 呢 (｡•́︿•̀｡)"
         }
     }
     private func save() {
@@ -173,21 +188,21 @@ final class MiniCompanionAI: ObservableObject {
         guard !content.isEmpty && !answering else { return }
         let config = MiniChatConfig.load()
         guard config.hasKey && !config.modelID.isEmpty else {
-            status = "请先打开 Mini 酱设置，连接 DeepSeek"
+            status = "先到设置里连接 DeepSeek 哦 (・ω・)ノ"
             return
         }
         answering = true
         messages.append(MiniCompanionLine(.user, String(content.prefix(6000))))
         save()
-        status = "Mini 酱正在用 " + config.modelID + " 回复…"
+        status = "Mini 酱正在组织语言… (੭ˊᵕˋ)੭ · " + config.modelID
         let conversation = Array(messages.suffix(18))
         Task {
             do {
                 let response = try await MiniChatAPI.reply(config: config, history: conversation)
                 messages.append(MiniCompanionLine(.mini, response))
-                status = "DeepSeek AI Chat · " + config.modelID
+                status = "Mini 酱在线啦 ✨ · " + config.modelID
             } catch {
-                status = "聊天请求失败：" + error.localizedDescription + "（可以重新发送）"
+                status = "呜哇，消息没送达 (｡•́︿•̀｡)： " + error.localizedDescription + "（可以重新发送）"
             }
             answering = false
             save()
