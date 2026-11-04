@@ -117,7 +117,7 @@ struct MiniCompanionOverlay: View {
     private var chatBubble: some View {
         VStack(alignment: .leading, spacing: 9) {
             HStack(spacing: 6) {
-                Text("Mini 酱 · DeepSeek Chat ♡")
+                Text("Mini 酱 · 猫耳聊天室 ฅ^•ﻌ•^ฅ")
                     .font(.system(size: 13, weight: .semibold)).lineLimit(1)
                 Spacer(minLength: 0)
                 Button { showMiniSettings = true } label: { Image(systemName: "gearshape.fill") }
@@ -131,7 +131,7 @@ struct MiniCompanionOverlay: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 8) {
                         if miniAI.messages.isEmpty {
-                            Text("嘿嘿，今天想聊点什么？♡")
+                            Text("嘿嘿，今天想聊什么呀？(=^･ω･^=) 💜")
                                 .font(.system(size: 12)).foregroundColor(.secondary)
                         }
                         ForEach(miniAI.messages) { line in
@@ -160,7 +160,7 @@ struct MiniCompanionOverlay: View {
                     .buttonStyle(.borderedProminent)
             }
             HStack(spacing: 6) {
-                TextField("和 Mini 酱说点什么…", text: $draft)
+                TextField("戳戳 Mini 酱，聊点什么吧～ 🐾", text: $draft)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { send() }
                 Button { send() } label: {
