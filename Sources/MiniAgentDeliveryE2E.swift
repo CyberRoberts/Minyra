@@ -121,6 +121,13 @@ if __name__ == "__main__":
             try verify(MiniAgentE2EFixture.replies.isEmpty, "fixture did not consume final delivery reply")
             let actual = try String(contentsOf: root.appendingPathComponent("src/calc.py"))
             try verify(actual.contains("return a + b"), "regression: wrong arithmetic code delivered")
+            let preFixBackups = try MiniProject(root).availableBackups("src/calc.py")
+            try verify(!preFixBackups.isEmpty, "AI repair did not preserve original broken file")
+            let previous = try String(contentsOf: preFixBackups[0], encoding: .utf8)
+            try verify(previous.contains("return a - b"),
+                       "saved pre-edit version is not recoverable after the repair")
+            print("AGENT_E2E_BACKUP_PASS: original project file preserved before AI fix")
+
             let failedTestWasObserved = agent.chat.contains {
                 $0.message.contains("执行检查") && $0.message.contains("未通过")
             }
