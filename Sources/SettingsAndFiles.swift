@@ -101,6 +101,42 @@ struct MiniProject {
         UserDefaults.standard.set(root.path, forKey: "projectRoot")
     }
 
+    // Backups are OUTSIDE the executable project sandbox. AI-generated build
+    // scripts cannot erase them, and they never enter the chat/API context.
+    // Each changed existing file is copied before the atomic replacement.
+    var backupDirectory: URL {
+        var hash: UInt64 = 14695981039346656037
+        for byte in root.path.utf8 { hash = (hash ^ UInt64(byte)) &* 1099511628211 }
+        let base: URL
+        if CommandLine.arguments.contains("--self-test") ||
+           CommandLine.arguments.contains("--agent-e2e-test") {
+            base = FileManager.default.temporaryDirectory.appendingPathComponent(
+                "Minyra-Test-Backups-\\(ProcessInfo.processInfo.processIdentifier)", isDirectory: true)
+        } else {
+            base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+                .appendingPathComponent("MinyraOpenSource/Backups", isDirectory: true)
+        }
+        return base.appendingPathComponent(String(hash, radix: 16), isDirectory: true)
+    }
+
+    private func backupBeforeEdit(_ source: URL, relative: String) throws {
+        let backupFolder = backupDirectory.appendingPathComponent(relative, isDirectory: true)
+        try FileManager.default.createDirectory(at: backupFolder, withIntermediateDirectories: true)
+        // The UUID preserves every version even for edits in the same second.
+        let stamp = ISO8601DateFormatter().string(from: Date())
+            .replacingOccurrences(of: ":", with: "-")
+        let destination = backupFolder.appendingPathComponent(stamp + "-" +
+            UUID().uuidString + ".bak")
+        try FileManager.default.copyItem(at: source, to: destination)
+    }
+
+    func availableBackups(_ relative: String) throws -> [URL] {
+        _ = try safeURL(relative)
+        let folder = backupDirectory.appendingPathComponent(relative, isDirectory: true)
+        return (try? FileManager.default.contentsOfDirectory(at: folder,
+                    includingPropertiesForKeys: nil))?.sorted { $0.lastPathComponent < $1.lastPathComponent } ?? []
+    }
+
     func safeURL(_ relative: String, mustExist: Bool = false) throws -> URL {
         let path = relative.trimmingCharacters(in: .whitespacesAndNewlines)
         if path.isEmpty || path.hasPrefix("/") || path.contains("\\") || path.contains("\0") || path.components(separatedBy: "/").contains("..") {
@@ -175,8 +211,18 @@ struct MiniProject {
         let fm = FileManager.default
         var isDir: ObjCBool = false
         if fm.fileExists(atPath: url.path, isDirectory: &isDir) && isDir.boolValue { throw MiniError("不能覆盖文件夹") }
-        if fm.fileExists(atPath: url.path), (try? String(contentsOf: url, encoding: .utf8)) == content {
-            return "内容未变化：\(relative)"
+        let existing = fm.fileExists(atPath: url.path)
+        if existing, (try? String(contentsOf: url, encoding: .utf8)) == content {
+            return "内容未变化：\\(relative)"
+        }
+        if existing {
+            // Refuse to replace unexpectedly large/binary project artifacts
+            // with a text tool; preserve all older bytes before this edit.
+            let originalSize = (try? fm.attributesOfItem(atPath: url.path)[.size] as? NSNumber)?.intValue ?? 0
+            guard originalSize <= 5_000_000 else {
+                throw MiniError("原文件超过 5 MB，禁止用文本工具覆盖，请采用专项构建流程")
+            }
+            try backupBeforeEdit(url, relative: relative)
         }
         try fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try content.write(to: url, atomically: true, encoding: .utf8)
