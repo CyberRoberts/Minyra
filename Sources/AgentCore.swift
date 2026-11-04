@@ -165,7 +165,7 @@ final class AgentCore: ObservableObject {
 
     init() {
         loadSession()
-        if chat.isEmpty { chat.append(ChatLine(.info, "初次见面呀，我是 Mini 酱 ♡ 告诉我你想做什么程序，我会负责建项目、写代码和验证。已有项目点 ＋ 添加就好喵～")) }
+        if chat.isEmpty { chat.append(ChatLine(.info, "初次见面！Mini 酱来报到啦 ฅ^•ﻌ•^ฅ 💜 告诉我今天要开发什么吧～我会修改项目、运行检查、验证结果；已有项目点 ＋ 添加即可！")) }
     }
 
     var configured: Bool {
@@ -255,7 +255,7 @@ final class AgentCore: ObservableObject {
             history = []
             queuedInstructions = []
             waitingForAPI = false
-            chat = [ChatLine(.info, "新工作室准备好啦 ♡ 直接告诉 Mini 酱想做什么，我来搭建项目～")]
+            chat = [ChatLine(.info, "新工作室准备好啦！٩(ˊᗜˋ*)و ✨ 告诉 Mini 酱你的目标吧～")]
             paused = false; runningWhenSaved = false
             apiCalls = 0; tokensInput = 0; tokensOutput = 0; toolOperations = 0; usageAvailable = false
             taskState = AgentTaskState()
@@ -276,7 +276,7 @@ final class AgentCore: ObservableObject {
         if running {
             chat.append(ChatLine(.user, prompt))
             queuedInstructions.append(prompt)
-            activity = "收到补充要求，Mini 酱会在下一次请求时接上～"
+            activity = "收到新指令！Mini 酱已经排进待办啦 (๑•̀ㅂ•́)و✧"
             saveSession()
             return
         }
@@ -386,6 +386,7 @@ final class AgentCore: ObservableObject {
         Your tools are limited to the selected project paths; never read secrets, access outside workspace through file tools, escalate permissions or attempt destructive actions.
         Only execute safe local build/test commands via run_command if enabled; NEVER use sudo, install arbitrary downloaded executables, wipe user files or run a piped remote script.
         Show meaningful progress by calling report_progress during milestones: current goal, findings, what changed, what the next check is. These are short user-visible summaries of actions/observations, not private hidden reasoning or fabricated internal thoughts.
+        Your user-facing progress voice is warm, playful Mini-chan: occasionally add ONE short, varied, context-appropriate emoji or kaomoji (e.g. (๑•̀ㅂ•́)و✧ or 🐾) to a progress milestone, not every line. Keep outputs concise to save tokens. Never insert decorations into code, tool arguments, file paths, commands, exact errors, test logs, JSON, or acceptance evidence. Accurate results and reliable completion always take priority over cuteness.
         Do not paste raw CSS/files or massive test output into chat.
         Start each new task with set_acceptance_plan listing concrete, checkable user requirements. This plan is persisted, and previously listed requirements cannot be silently removed.
         Your visible progress is a concise observed work log, not hidden private reasoning. After each milestone give what you did, what passed or failed, and what happens next.
@@ -397,7 +398,16 @@ final class AgentCore: ObservableObject {
         """
     }
     private func ensureSystemMessage() {
-        if history.isEmpty { history = [["role": "system", "content": systemMessage()]] }
+        // Refresh the voice and operational rules even for existing saved sessions.
+        // Preserve all user, assistant and tool messages in their original order.
+        let current: [String: Any] = ["role": "system", "content": systemMessage()]
+        if history.isEmpty {
+            history = [current]
+        } else if history[0]["role"] as? String == "system" {
+            history[0] = current
+        } else {
+            history.insert(current, at: 0)
+        }
     }
     private func repairPendingCalls() {
         // A crash may have occurred while a tool was in progress; close any unpaired calls without re-executing risky commands.
@@ -711,7 +721,7 @@ final class AgentCore: ObservableObject {
         finishedDuringRun = true
         let evidence = verified.map { $0.criterionID + " ✓ " + $0.argv.joined(separator: " ") }.joined(separator: "；")
         let remaining = AgentContextPolicy.short(args["remaining"] as? String ?? "尚需用户进行图形界面与真实使用场景验证", max: 220)
-        chat.append(ChatLine(.assistant, "🎉 本地验收通过啦！Mini 酱已经自动停下，不再继续调用 API ♡\n" +
+        chat.append(ChatLine(.assistant, "🎉 本地验收通过啦！(≧▽≦)💜 Mini 酱已经自动停下，不再继续调用 API。\n" +
             "完成：" + AgentContextPolicy.short(summary, max: 450) +
             "\n交付：" + artifacts.prefix(12).joined(separator: "、") +
             "\n验证：" + AgentContextPolicy.short(evidence, max: 500) +
