@@ -197,7 +197,13 @@ private enum MiniSelfTest {
                   compact.contains(where: { $0["tool_call_id"] as? String == "one" }) else {
                 throw MiniError("恢复上下文时破坏了多工具调用配对")
             }
+            guard !AgentContextPolicy.hasPendingToolCalls(historyFixture) else {
+                throw MiniError("完整工具调用被错误标记为未完成")
+            }
             historyFixture.removeLast()
+            guard AgentContextPolicy.hasPendingToolCalls(historyFixture) else {
+                throw MiniError("未完成多工具调用未被发现，存在记录损坏风险")
+            }
             let interrupted = AgentContextPolicy.trimStoredHistory(historyFixture)
             guard !interrupted.contains(where: { $0["tool_call_id"] as? String == "one" }) else {
                 throw MiniError("历史裁剪保留了未完成工具调用")
