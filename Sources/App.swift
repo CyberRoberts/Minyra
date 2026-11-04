@@ -55,6 +55,22 @@ private enum MiniSelfTest {
             guard try project.readRange("src/main.py", from: 1, to: 1).contains("L1: print('hi')") else { throw MiniError("分段读取测试失败") }
             _ = try project.replace("src/main.py", old: "hi", new: "hello")
             guard try project.read("src/main.py") == "print('hello')\n" else { throw MiniError("replace 测试失败") }
+            // The original source must be recoverable after every real edit.
+            let backups = try project.availableBackups("src/main.py")
+            guard backups.count == 1,
+                  try String(contentsOf: backups[0], encoding: .utf8) == "print('hi')\n",
+                  !project.backupDirectory.path.hasPrefix(folder.path + "/") else {
+                throw MiniError("修改前自动备份不存在、内容错误或位于不安全的项目目录")
+            }
+            _ = try project.write("src/main.py", "print('hello')\n")
+            guard try project.availableBackups("src/main.py").count == 1 else {
+                throw MiniError("无变化写入仍然生成无用备份")
+            }
+            let restoredSource = try String(contentsOf: backups[0], encoding: .utf8)
+            guard restoredSource == "print('hi')\n" else {
+                throw MiniError("备份文件无法恢复原始源码")
+            }
+
             guard try project.listing().contains("src/main.py") else { throw MiniError("list 测试失败") }
             var blocked = false
             do { _ = try project.read("../private") } catch { blocked = true }
@@ -165,6 +181,32 @@ private enum MiniSelfTest {
                                        result: "unchanged-sha",
                                        isProgress: true, failedTest: false) != nil else {
                 throw MiniError("恢复策略错误地清除了重复写入证据")
+            }
+            // Long resumed conversations must never contain orphaned tool results.
+            var historyFixture: [[String: Any]] = [["role": "system", "content": "agent"]]
+            for i in 0..<50 { historyFixture.append(["role": "user", "content": "step \(i)"]) }
+            historyFixture.append(["role": "assistant", "tool_calls": [
+                ["id": "one", "function": ["name": "read_file", "arguments": "{}"]],
+                ["id": "two", "function": ["name": "write_file", "arguments": "{}"]]
+            ]])
+            historyFixture.append(["role": "tool", "tool_call_id": "one", "content": "read ok"])
+            historyFixture.append(["role": "tool", "tool_call_id": "two", "content": "write ok"])
+            let compact = AgentContextPolicy.trimStoredHistory(historyFixture)
+            guard compact.count <= 42,
+                  compact.last?["tool_call_id"] as? String == "two",
+                  compact.contains(where: { $0["tool_call_id"] as? String == "one" }) else {
+                throw MiniError("恢复上下文时破坏了多工具调用配对")
+            }
+            guard !AgentContextPolicy.hasPendingToolCalls(historyFixture) else {
+                throw MiniError("完整工具调用被错误标记为未完成")
+            }
+            historyFixture.removeLast()
+            guard AgentContextPolicy.hasPendingToolCalls(historyFixture) else {
+                throw MiniError("未完成多工具调用未被发现，存在记录损坏风险")
+            }
+            let interrupted = AgentContextPolicy.trimStoredHistory(historyFixture)
+            guard !interrupted.contains(where: { $0["tool_call_id"] as? String == "one" }) else {
+                throw MiniError("历史裁剪保留了未完成工具调用")
             }
             var supervision = AcceptanceSupervisor()
             supervision.startFresh()

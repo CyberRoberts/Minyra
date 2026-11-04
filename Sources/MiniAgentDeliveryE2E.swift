@@ -121,6 +121,13 @@ if __name__ == "__main__":
             try verify(MiniAgentE2EFixture.replies.isEmpty, "fixture did not consume final delivery reply")
             let actual = try String(contentsOf: root.appendingPathComponent("src/calc.py"))
             try verify(actual.contains("return a + b"), "regression: wrong arithmetic code delivered")
+            let preFixBackups = try MiniProject(root).availableBackups("src/calc.py")
+            try verify(!preFixBackups.isEmpty, "AI repair did not preserve original broken file")
+            let previous = try String(contentsOf: preFixBackups[0], encoding: .utf8)
+            try verify(previous.contains("return a - b"),
+                       "saved pre-edit version is not recoverable after the repair")
+            print("AGENT_E2E_BACKUP_PASS: original project file preserved before AI fix")
+
             let failedTestWasObserved = agent.chat.contains {
                 $0.message.contains("执行检查") && $0.message.contains("未通过")
             }
@@ -131,6 +138,19 @@ if __name__ == "__main__":
             try verify(passedTestWasObserved, "repaired program never passed its real test")
             print("AGENT_E2E_DELIVERY_PASS: wrote broken code -> real test failed -> repaired -> real test passed -> 2 independent checks -> Completed -> stopped at five fixture responses")
             print("AGENT_E2E_COUNTS requests=\(MiniAgentE2EFixture.requests) tool_ops=\(agent.toolOperations) acceptance_checks=\(agent.taskState.supervisor?.confirmedChecks.count ?? 0)")
+
+            // A fresh AgentCore must recover the saved plan, checks and state
+            // from disk, rather than silently starting a second task.
+            let reopened = AgentCore()
+            reopened.workspace = MiniProject(root)
+            reopened.reloadSessionForE2ETest()
+            try verify(!reopened.running && !reopened.taskState.needsWork,
+                       "completed session unexpectedly restarted after reopening")
+            try verify(reopened.taskState.goal == agent.taskState.goal &&
+                       reopened.taskState.supervisor?.confirmedChecks.count == 2 &&
+                       reopened.apiCalls == agent.apiCalls,
+                       "project session lost goal, acceptance evidence or API count after restart")
+            print("AGENT_E2E_RESTART_MEMORY_PASS: existing project completion and evidence restored from disk")
 
             // Second offline end-to-end scenario: a model that keeps reading
             // an unchanged/nonexistent file MUST become Blocked after bounded
@@ -226,23 +246,29 @@ if __name__ == "__main__":
                     ]
                 ], "recovery-finish")
             ])
-            // NO new 'start' instruction. This is the old Blocked task.
-            stalled.continueWork()
+            // Recreate the app process boundary. No new user instructions.
+            let resumed = AgentCore()
+            resumed.workspace = MiniProject(stalledRoot)
+            resumed.reloadSessionForE2ETest()
+            resumed.enableE2EKeyForDeliveryTest()
+            try verify(resumed.taskState.supervisor?.status == .blocked && resumed.paused,
+                       "previously blocked project was not restored from disk")
+            resumed.continueWork()
             let recoveryDeadline = Date().addingTimeInterval(35)
-            while stalled.running && Date() < recoveryDeadline {
+            while resumed.running && Date() < recoveryDeadline {
                 try await Task.sleep(nanoseconds: 100_000_000)
             }
-            if stalled.running {
-                stalled.stop()
+            if resumed.running {
+                resumed.stop()
                 throw MiniError("Previously blocked task failed to finish unattended recovery")
             }
-            try verify(stalled.taskState.supervisor?.status == .completed,
-                       "blocked task did not self-diagnose and complete: " + stalled.activity)
-            try verify(stalled.taskState.supervisor?.confirmedChecks.count == 2,
+            try verify(resumed.taskState.supervisor?.status == .completed,
+                       "blocked task did not self-diagnose and complete: " + resumed.activity)
+            try verify(resumed.taskState.supervisor?.confirmedChecks.count == 2,
                        "recovered task did not independently rerun all checks")
             try verify(MiniAgentE2EFixture.requests == 3,
                        "recovery consumed unexpected model requests")
-            try verify(stalled.chat.contains { $0.message.contains("本地自动诊断") || $0.message.contains("根据已保存") },
+            try verify(resumed.chat.contains { $0.message.contains("本地自动诊断") || $0.message.contains("根据已保存") },
                        "no host-side self-diagnostic evidence before model repair")
             print("AGENT_E2E_SELF_DIAGNOSE_PASS: old Blocked task + no new user prompt -> automatic local diagnostic -> repaired code -> independent checks -> Completed")
             return 0

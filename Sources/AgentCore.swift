@@ -136,6 +136,11 @@ final class AgentCore: ObservableObject {
         guard CommandLine.arguments.contains("--agent-e2e-test") else { return }
         e2eKey = "offline-test-credential-never-sent"
     }
+    // Verifies the production disk-resume path without exposing it in the UI.
+    func reloadSessionForE2ETest() {
+        guard CommandLine.arguments.contains("--agent-e2e-test") else { return }
+        loadSession()
+    }
     private var currentJob: Task<Void, Never>?
     private var runningWhenSaved = false
     private var finishedDuringRun = false
@@ -449,15 +454,19 @@ final class AgentCore: ObservableObject {
     private func makeHistory() -> [[String: Any]] {
         let goal = taskState.goal.isEmpty ? (taskState.lastUserInstruction.isEmpty ? "请继续当前项目" : taskState.lastUserInstruction) : taskState.goal
         let acceptance = (taskState.supervisor?.criteria ?? []).map { $0.id + ": " + $0.requirement }.joined(separator: "\n")
-        return AgentContextPolicy.promptHistory(system: systemMessage(), originalGoal: goal, memo: taskState.memo + ["本地验收清单（禁止遗漏；无测试则不能宣告完成）：\n" + acceptance], history: history)
+        let persistentEvidence = [
+            "最近修改文件：" + taskState.changedFiles.suffix(20).joined(separator: ", "),
+            "最近真实测试失败：" + AgentContextPolicy.short(lastFailureSummary, max: 520),
+            "本地验收清单（禁止遗漏；无测试则不能宣告完成）：\n" + acceptance
+        ]
+        return AgentContextPolicy.promptHistory(system: systemMessage(), originalGoal: goal,
+                                                memo: taskState.memo + persistentEvidence, history: history)
     }
 
     private func saveShortHistory() {
         // The complete chat and task memo are saved separately; API history is a rolling cache.
-        if history.count > 42 {
-            var tail = Array(history.suffix(28))
-            while let first = tail.first, first["role"] as? String == "tool" { tail.removeFirst() }
-            history = [history[0]] + tail.filter { ($0["role"] as? String) != "system" }
+        if history.count > 42 && !AgentContextPolicy.hasPendingToolCalls(history) {
+            history = AgentContextPolicy.trimStoredHistory(history, maxMessages: 42)
         }
     }
 
