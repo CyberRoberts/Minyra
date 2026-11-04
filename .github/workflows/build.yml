@@ -1,12 +1,15 @@
-name: Build public Minyra source
+name: Build and verify public Minyra preview
+
 on:
   push:
     branches: [main]
   pull_request:
+
 permissions:
   contents: read
+
 jobs:
-  intel-mac:
+  build-and-test:
     runs-on: macos-15-intel
     timeout-minutes: 30
     steps:
@@ -14,7 +17,62 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install icon generator
+      - name: Install public icon generator
         run: python3 -m pip install --quiet 'Pillow==11.3.0'
-      - name: Build app and run offline Agent verification
+      - name: Build and run offline agent verification
         run: bash Scripts/build_public.sh
+      - name: Package unsigned Intel preview
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          APP='build/PublicDerivedData/Build/Products/Release/Minyra for Mac.app'
+          test -x "$APP/Contents/MacOS/MiniCodingAgent"
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent "$APP" \
+            'dist/Minyra-for-Mac-v1.0.0-preview.1-macos-x86_64.zip'
+          (cd dist && shasum -a 256 *.zip > SHA256SUMS.txt)
+          test -s dist/SHA256SUMS.txt
+      - name: Upload public preview package
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: minyra-macOS-Intel-preview
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-preview:
+    name: Publish versioned preview (once, after checks pass)
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: minyra-macOS-Intel-preview
+          path: dist
+      - name: Publish unsigned prerelease if it does not exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: v1.0.0-preview.1
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -s dist/SHA256SUMS.txt
+          test -s dist/Minyra-for-Mac-v1.0.0-preview.1-macos-x86_64.zip
+          (cd dist && shasum -a 256 -c SHA256SUMS.txt)
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Existing preview release: $RELEASE_TAG (not replacing assets)"
+            exit 0
+          fi
+          gh release create "$RELEASE_TAG" \
+            dist/Minyra-for-Mac-v1.0.0-preview.1-macos-x86_64.zip \
+            dist/SHA256SUMS.txt \
+            --target "$GITHUB_SHA" \
+            --title 'Minyra for Mac v1.0.0 Preview 1 (unsigned)' \
+            --notes-file RELEASE_NOTES.md \
+            --prerelease
