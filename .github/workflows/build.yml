@@ -35,6 +35,33 @@ jobs:
           printf '%s\n' 'display dialog "安装 Minyra for Mac 1.0.1：将先自动测试，再替换 /Applications 中的旧版。" buttons {"取消", "开始安装"} default button "开始安装" cancel button "取消" with icon note' > "$RUNNER_TEMP/minyra-dialog.applescript"
           osacompile -o "$RUNNER_TEMP/minyra-dialog.scpt" "$RUNNER_TEMP/minyra-dialog.applescript"
           echo "PRIVATE_GUI_INSTALLER_APPLESCRIPT_SYNTAX_PASS"
+      - name: Compile repaired private installer dialogs on macOS
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/minyra-repair-error.applescript" <<'OSA'
+          on run argv
+              set reasonText to item 1 of argv
+              set details to item 2 of argv
+              set logPath to item 3 of argv
+              try
+                  set answer to display dialog "Mini 酱暂未安装，原版保持不变。" & return & return & "原因：" & reasonText & return & return & "最近的检查结果：" & return & details buttons {"关闭", "查看详细日志"} default button "查看详细日志" with icon caution giving up after 300
+                  if button returned of answer is "查看详细日志" then
+                      do shell script "/usr/bin/open -a TextEdit " & quoted form of logPath
+                  end if
+              end try
+          end run
+          OSA
+          cat > "$RUNNER_TEMP/minyra-repair-start.applescript" <<'OSA'
+          try
+              display dialog "修复安装 Minyra for Mac 1.0.1" & return & return & "• 自动修复签名与下载隔离属性" & return & "• 自动运行本机自检和真实子进程测试" & return & "• 通过后直接替换 /Applications 中的旧版" & return & "• 不保留旧版安装备份，项目资料不会主动清除" buttons {"取消", "开始安装"} default button "开始安装" cancel button "取消" with icon note
+          on error number -128
+              error number -128
+          end try
+          OSA
+          for x in "$RUNNER_TEMP"/minyra-repair-*.applescript; do
+            osacompile -o "${x%.applescript}.scpt" "$x"
+          done
+          echo "REPAIR_INSTALLER_GUI_APPLESCRIPT_COMPILE_OK"
       - name: Package unsigned Intel preview
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci/private-core-compatibility-20261104')
         shell: bash
