@@ -32,7 +32,7 @@ jobs:
             '    do shell script cmdText with administrator privileges' \
             'end run' > "$RUNNER_TEMP/minyra-install.applescript"
           osacompile -o "$RUNNER_TEMP/minyra-install.scpt" "$RUNNER_TEMP/minyra-install.applescript"
-          printf '%s\n' 'display dialog "安装 Minyra for Mac 1.0.1：将先自动测试，再替换 /Applications 中的旧版。" buttons {"取消", "开始安装"} default button "开始安装" with icon note' > "$RUNNER_TEMP/minyra-dialog.applescript"
+          printf '%s\n' 'display dialog "安装 Minyra for Mac 1.0.1：将先自动测试，再替换 /Applications 中的旧版。" buttons {"取消", "开始安装"} default button "开始安装" cancel button "取消" with icon note' > "$RUNNER_TEMP/minyra-dialog.applescript"
           osacompile -o "$RUNNER_TEMP/minyra-dialog.scpt" "$RUNNER_TEMP/minyra-dialog.applescript"
           echo "PRIVATE_GUI_INSTALLER_APPLESCRIPT_SYNTAX_PASS"
       - name: Package unsigned Intel preview
