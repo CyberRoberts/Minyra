@@ -1,0 +1,124 @@
+name: Package Minyra local-delivery Intel DMG preview (free public runner)
+on:
+  push:
+    branches:
+      - feat/local-delivery-dmg-20261106
+
+permissions:
+  contents: write
+
+concurrency:
+  group: minyra-local-delivery-preview-dmg
+  cancel-in-progress: false
+
+jobs:
+  package-and-publish:
+    name: Compile, test, verify DMG, publish prerelease
+    runs-on: macos-15-intel
+    timeout-minutes: 45
+    steps:
+      - name: Check out public preview branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python for public placeholder icon
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install icon generator
+        run: python3 -m pip install --quiet 'Pillow==11.3.0'
+      - name: Build native Intel app and run real offline checks
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash Scripts/build_public.sh
+          APP='build/PublicDerivedData/Build/Products/Release/Minyra for Mac.app'
+          EXE="$APP/Contents/MacOS/MiniCodingAgent"
+          test -x "$EXE"
+          file "$EXE"
+          lipo -archs "$EXE" | grep -qw x86_64
+          PLIST="$APP/Contents/Info.plist"
+          test "$(plutil -extract CFBundleIdentifier raw -o - "$PLIST")" = 'io.github.cyberroberts.minyra.opensource'
+          test "$(plutil -extract LSMinimumSystemVersion raw -o - "$PLIST")" = '12.0'
+          echo 'MINYRA_INTEL_SOURCE_BUILD_AND_OFFLINE_E2E_PASS'
+      - name: Produce standalone DMG with Applications drag target
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          APP='build/PublicDerivedData/Build/Products/Release/Minyra for Mac.app'
+          STAGE="$RUNNER_TEMP/minyra-preview-stage"
+          mkdir -p "$STAGE" dist
+          ditto "$APP" "$STAGE/Minyra for Mac.app"
+          ln -s /Applications "$STAGE/Applications"
+          cat > "$STAGE/READ_ME_FIRST.txt" <<'NOTE'
+          MINYRA FOR MAC — LOCAL DELIVERY PREVIEW 1 (INTEL)
+          Public open-source development preview only, not an Apple-certified stable release.
+          This DMG is compiled and tested with GitHub's Intel macOS 15 build environment
+          and targets macOS 12+. Actual graphical acceptance on macOS 12 is not proven.
+          It is UNSIGNED and NOT NOTARIZED. macOS may show a security warning.
+          Please do not disable Gatekeeper globally. Install only if you trust the source.
+          This public build has the generic open-source icon, not the private Mini mascot.
+          It contains no private Ahaly project source, keys, assets, or account settings.
+          In-app local DMG delivery currently only supports reviewed Ahaly 1.2 QA
+          projects and must be explicitly enabled. It does not publish production Ahaly.
+          Source: https://github.com/CyberRoberts/Minyra
+          NOTE
+          DMG='dist/Minyra-Local-Delivery-v1.0.0-preview.1-Intel.dmg'
+          hdiutil create -volname 'Minyra Local Delivery Preview' -srcfolder "$STAGE" -format UDZO -ov "$DMG"
+          hdiutil verify "$DMG"
+          (cd dist && shasum -a 256 Minyra-Local-Delivery-v1.0.0-preview.1-Intel.dmg > SHA256SUMS.txt)
+      - name: Mount DMG, inspect exact packaged executable and verify checksum
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          DMG='dist/Minyra-Local-Delivery-v1.0.0-preview.1-Intel.dmg'
+          MOUNT="$RUNNER_TEMP/minyra-preview-mounted"
+          mkdir -p "$MOUNT"
+          hdiutil attach -readonly -nobrowse -mountpoint "$MOUNT" "$DMG"
+          trap 'hdiutil detach "$MOUNT" || true' EXIT
+          EXE="$MOUNT/Minyra for Mac.app/Contents/MacOS/MiniCodingAgent"
+          test -x "$EXE"
+          lipo -archs "$EXE" | grep -qw x86_64
+          test -L "$MOUNT/Applications"
+          test -s "$MOUNT/READ_ME_FIRST.txt"
+          test "$(plutil -extract CFBundleIdentifier raw -o - "$MOUNT/Minyra for Mac.app/Contents/Info.plist")" = 'io.github.cyberroberts.minyra.opensource'
+          cmp "$EXE" 'build/PublicDerivedData/Build/Products/Release/Minyra for Mac.app/Contents/MacOS/MiniCodingAgent'
+          (cd dist && shasum -a 256 -c SHA256SUMS.txt)
+          echo 'MINYRA_DMG_MOUNT_AND_HASH_VERIFIED'
+      - name: Save DMG as downloadable Actions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Minyra-Local-Delivery-Intel-DMG
+          path: |
+            dist/Minyra-Local-Delivery-v1.0.0-preview.1-Intel.dmg
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish verified DMG to durable GitHub prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v1.0.0-local-delivery-preview.1
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::Preview tag already exists: refusing to silently replace an existing release"
+            exit 1
+          fi
+          cat > dist/RELEASE_NOTES.txt <<'NOTE'
+          Minyra for Mac — local delivery preview 1 (Intel x86_64)
+
+          This is an UNSIGNED and UNNOTARIZED open-source preview, NOT the stable app.
+          Verified on a GitHub-hosted macOS 15 Intel runner: Xcode compilation, --self-test,
+          --agent-e2e-test (offline mock AI), DMG creation, mount, executable comparison
+          and SHA256. Real macOS 12 GUI testing and local Ahaly DMG tests remain unverified.
+
+          Includes an opt-in 5-stage local Ahaly QA DMG packaging dashboard. It does not
+          use paid GitHub Actions for local builds. Does not contain or publish private
+          Ahaly sources and never automatically deploys an Ahaly production build.
+          Public source preview uses a generic icon, not the private Mini-chan artwork.
+
+          Download the DMG and verify its SHA256 with SHA256SUMS.txt.
+          NOTE
+          gh release create "$TAG"             dist/Minyra-Local-Delivery-v1.0.0-preview.1-Intel.dmg             dist/SHA256SUMS.txt             --target "$GITHUB_SHA"             --title 'Minyra Local Delivery Preview 1 — Intel DMG (unsigned)'             --notes-file dist/RELEASE_NOTES.txt             --prerelease
+          gh release view "$TAG" --json url,assets --jq '{url: .url, assets: [.assets[].name]}'
