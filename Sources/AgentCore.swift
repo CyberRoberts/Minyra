@@ -123,6 +123,8 @@ final class AgentCore: ObservableObject {
     @Published var usageAvailable = false
     @Published var routingStatus = "模型：待命"
     @Published var workspace: MiniProject = .automatic()
+    // Independent, local-only packaging lane. Never dispatches GitHub Actions.
+    @Published var localDelivery = MinyraLocalDelivery()
     @Published private(set) var taskState = AgentTaskState()
     @Published var budgetNotice = ""
     @Published var waitingForAPI = false
@@ -192,13 +194,24 @@ final class AgentCore: ObservableObject {
 
 
     func openInFinder() { NSWorkspace.shared.open(workspace.root) }
+    var canDeliverLocally: Bool {
+        MinyraLocalDelivery.preflight(project: workspace.root) == nil
+    }
+    func deliverCurrentProject() {
+        guard !running, !localDelivery.running else { return }
+        guard AppConfig.load().autoRun else {
+            chat.append(ChatLine(.error, "本地打包会执行受信任项目的编译脚本；请先在设置中开启本地运行权限。"))
+            return
+        }
+        localDelivery.start(project: workspace.root)
+    }
     func attachFiles(_ urls: [URL]) {
-        guard !running else { return }
+        guard !running && !localDelivery.running else { return }
         let result = workspace.importFiles(urls)
         if !result.isEmpty { chat.append(ChatLine(.info, result.joined(separator: "\n"))); saveSession() }
     }
     func attachUsingPanel() {
-        guard !running else { return }
+        guard !running && !localDelivery.running else { return }
         let p = NSOpenPanel()
         p.title = "把现有项目交给 Mini"
         p.message = "选择文件、项目文件夹或 ZIP。Mini 会复制到自己的工作目录，不会改动原件。"
@@ -209,7 +222,7 @@ final class AgentCore: ObservableObject {
         if p.runModal() == .OK { attachFiles(p.urls) }
     }
     func openExistingProject() {
-        guard !running else { return }
+        guard !running && !localDelivery.running else { return }
         let p = NSOpenPanel()
         p.title = "打开旧项目"
         p.prompt = "打开这个项目"
@@ -246,7 +259,7 @@ final class AgentCore: ObservableObject {
         lastFailedTestArgv = []; lastFailedTestCwd = "."; lastDiagnosticEvidence = ""
     }
     func newProject() {
-        guard !running else { return }
+        guard !running && !localDelivery.running else { return }
         // Never delete older projects; a new one gets a fresh auto-generated folder.
         let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first ?? FileManager.default.homeDirectoryForCurrentUser
         let parent = base.appendingPathComponent("MiniAgent 工作站", isDirectory: true)
@@ -275,6 +288,10 @@ final class AgentCore: ObservableObject {
     }
 
     func start(_ text: String) {
+        if localDelivery.running {
+            chat.append(ChatLine(.info, "当前正在本地编译和打包，请等本次交付结束或先停止打包。"))
+            return
+        }
         let prompt = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !prompt.isEmpty else { return }
         // Conversation stays interactive while API replies are pending, including 503 backoff.
@@ -736,6 +753,12 @@ final class AgentCore: ObservableObject {
             "\n验证：" + AgentContextPolicy.short(evidence, max: 500) +
             "\n注意：" + remaining + "（本地命令通过不等于所有交互场景均已验证）"))
         taskState.log("独立验收通过：" + evidence)
+        // This opt-in path starts only AFTER independent checks completed.
+        // It is disabled for offline test fixtures and never invokes Actions.
+        if UserDefaults.standard.bool(forKey: "minyra.autoPackageAfterVerified"),
+           !CommandLine.arguments.contains("--agent-e2e-test") {
+            localDelivery.start(project: workspace.root)
+        }
         return nil
     }
 
