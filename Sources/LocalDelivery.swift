@@ -89,6 +89,10 @@ final class MinyraLocalDelivery: ObservableObject {
         if let developer = original["DEVELOPER_DIR"], !developer.isEmpty {
             clean["DEVELOPER_DIR"] = developer
         }
+        // Every local build gets its own immutable destination, including repeated runs
+        // from an unchanged commit. No previous DMG is overwritten.
+        clean["GITHUB_RUN_ID"] = "minyra-" + UUID().uuidString
+        clean["GITHUB_RUN_ATTEMPT"] = "1"
         p.environment = clean
         let pipe = Pipe()
         p.standardOutput = pipe
