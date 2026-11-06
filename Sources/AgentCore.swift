@@ -132,6 +132,7 @@ final class AgentCore: ObservableObject {
 
     private var history: [[String: Any]] = []
     private let executor = LocalCommandRunner()
+    private var localDeliveryChangeSink: AnyCancellable?
     // Used solely by the opt-in --agent-e2e-test executable path.
     private var e2eKey: String? = nil
     func enableE2EKeyForDeliveryTest() {
@@ -171,6 +172,9 @@ final class AgentCore: ObservableObject {
     private var verifiedCheckKeys: [String] = []
 
     init() {
+        localDeliveryChangeSink = localDelivery.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
         loadSession()
         if chat.isEmpty { chat.append(ChatLine(.info, "初次见面！Mini 酱来报到啦 ฅ^•ﻌ•^ฅ 💜 告诉我今天要开发什么吧～我会修改项目、运行检查、验证结果；已有项目点 ＋ 添加即可！")) }
     }
