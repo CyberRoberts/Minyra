@@ -7,6 +7,8 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var dragActive = false
     @State private var showCompanion = true
+    @State private var showDeliveryLog = false
+    @AppStorage("minyra.autoPackageAfterVerified") private var autoPackageAfterVerified = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -17,6 +19,7 @@ struct ContentView: View {
                     if showCompanion { MiniCompanionOverlay() }
                 }
             if agent.running || agent.paused { taskActivityBanner }
+            if agent.canDeliverLocally || agent.localDelivery.running || !agent.localDelivery.lines.isEmpty { localDeliveryPanel }
             statusBar
             Divider()
             composer
@@ -40,6 +43,65 @@ struct ContentView: View {
             return !providers.isEmpty
         }
         .overlay(dragOverlay)
+    }
+
+    private var localDeliveryPanel: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 10) {
+                Label("Mini 酱 · 本地交付", systemImage: "shippingbox.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                Spacer(minLength: 4)
+                Toggle("AI 验收通过后自动生成 QA DMG", isOn: $autoPackageAfterVerified)
+                    .toggleStyle(.checkbox).font(.system(size: 11))
+                if agent.localDelivery.running {
+                    Button("停止构建") { agent.localDelivery.stop() }
+                        .buttonStyle(.bordered)
+                } else {
+                    Button("现在打包") { agent.deliverCurrentProject() }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(agent.running || !agent.canDeliverLocally)
+                }
+                if agent.localDelivery.artifactPath != nil {
+                    Button("在 Finder 查看 DMG") { agent.localDelivery.revealArtifact() }
+                        .buttonStyle(.bordered)
+                }
+            }
+            HStack(spacing: 8) {
+                Image(systemName: agent.localDelivery.failed ? "xmark.octagon.fill" : "checkmark.shield")
+                    .foregroundColor(agent.localDelivery.failed ? .orange : .green)
+                Text(agent.localDelivery.title)
+                    .lineLimit(1)
+                Spacer()
+                Text("\(agent.localDelivery.stage)/5")
+                    .monospacedDigit().foregroundColor(.secondary)
+            }
+            .font(.system(size: 11))
+            ProgressView(value: Double(agent.localDelivery.stage), total: 5)
+            Text("只在当前 Mac 编译和保存安装包；不触发 GitHub Actions，不上传或覆盖正式版。第一次使用需要允许本地命令执行。")
+                .font(.system(size: 10)).foregroundColor(.secondary)
+            if !agent.localDelivery.lines.isEmpty {
+                Button(showDeliveryLog ? "收起构建日志" : "查看构建日志") {
+                    showDeliveryLog.toggle()
+                }
+                .buttonStyle(.plain).font(.system(size: 10))
+                if showDeliveryLog {
+                    ScrollView {
+                        Text(agent.localDelivery.lines.suffix(20).joined(separator: "\n"))
+                            .font(.system(size: 10, design: .monospaced))
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(maxHeight: 115)
+                } else {
+                    Text(agent.localDelivery.lines.suffix(2).joined(separator: " · "))
+                        .font(.system(size: 10, design: .monospaced))
+                        .lineLimit(2)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(.horizontal, 20).padding(.vertical, 9)
+        .background(Color(red: 0.17, green: 0.16, blue: 0.22))
     }
 
     private var taskActivityBanner: some View {
@@ -71,11 +133,14 @@ struct ContentView: View {
             Spacer()
             Menu {
                 Button("新建项目（自动建文件夹）") { agent.newProject() }
-                    .disabled(agent.running)
+                    .disabled(agent.running || agent.localDelivery.running)
                 Button("打开已有项目") { agent.openExistingProject() }
-                    .disabled(agent.running)
+                    .disabled(agent.running || agent.localDelivery.running)
                 Divider()
                 Button("在 Finder 查看代码") { agent.openInFinder() }
+                Divider()
+                Button("本地测试与打包 DMG（无 Actions）") { agent.deliverCurrentProject() }
+                    .disabled(agent.running || agent.localDelivery.running || !agent.canDeliverLocally)
             } label: {
                 Label(agent.projectName, systemImage: "folder")
                     .lineLimit(1)
@@ -204,7 +269,7 @@ struct ContentView: View {
                     Label("添加文件", systemImage: "plus.circle.fill")
                 }
                 .help("附加现有项目文件、项目文件夹或 ZIP；也可以把它们拖进窗口")
-                .disabled(agent.running)
+                .disabled(agent.running || agent.localDelivery.running)
                 Spacer()
                 if agent.running {
                     Button("暂停") { agent.stop() }
@@ -221,7 +286,7 @@ struct ContentView: View {
                 }
                 .keyboardShortcut(.return, modifiers: [.command])
                 .buttonStyle(.borderedProminent)
-                .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || agent.localDelivery.running)
             }
             .font(.system(size: 12))
         }
